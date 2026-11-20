@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card"
 import { ProfileSidebar } from "@/components/wall/profile-sidebar"
 import { WallFeed } from "@/components/wall/wall-feed"
 import { isSupabaseConfigured } from "@/lib/supabase"
@@ -11,10 +10,7 @@ export default async function Home() {
   let posts: Post[] = []
   let loadError: string | null = null
 
-  if (!isSupabaseConfigured) {
-    loadError =
-      "Supabase isn't configured yet. Copy .env.example to .env.local, add your project URL and publishable key, then restart the dev server."
-  } else {
+  if (isSupabaseConfigured) {
     try {
       posts = await fetchPosts()
     } catch (err) {
@@ -23,16 +19,18 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-50 md:p-4 dark:bg-neutral-950">
-      <Card className="mx-auto max-w-[1400px] gap-0 overflow-hidden rounded-none py-0 shadow-sm md:rounded-lg">
-        <header className="bg-blue-500 px-8 py-4">
-          <span className="text-2xl font-bold text-white">wall</span>
-        </header>
-        <div className="flex flex-col md:flex-row">
-          <ProfileSidebar />
-          <WallFeed initialPosts={posts} loadError={loadError} canPost={isSupabaseConfigured} />
+    <div className="min-h-screen bg-gray-50 pb-4">
+      <header className="mx-4 mt-4 rounded-t-lg bg-blue-500 px-6 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-white">wall</h1>
         </div>
-      </Card>
-    </main>
+      </header>
+      <div className="mx-4 flex flex-col rounded-b-lg bg-white shadow-sm md:flex-row">
+        <ProfileSidebar />
+        <main className="min-w-0 flex-1 p-6">
+          <WallFeed initialPosts={posts} loadError={loadError} canPost={isSupabaseConfigured} />
+        </main>
+      </div>
+    </div>
   )
 }

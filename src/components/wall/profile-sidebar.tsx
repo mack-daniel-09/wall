@@ -1,31 +1,37 @@
 import { ProfilePhoto } from "@/components/wall/profile-photo"
-import { Button } from "@/components/ui/button"
 import { profile } from "@/lib/wall-data"
 
 export function ProfileSidebar() {
   return (
-    <aside className="border-b p-6 md:w-[400px] md:shrink-0 md:border-r md:border-b-0 md:p-8">
-      <div className="relative aspect-[4/5] w-full max-w-40 md:max-w-80overflow-hidden rounded-lg bg-muted">
-        <ProfilePhoto src={profile.photo} fallbackSrc={profile.photoFallback} alt={profile.name} />
+    <aside className="border-b border-gray-200 p-6 md:w-80 md:shrink-0 md:border-r md:border-b-0">
+      <div className="mb-8">
+        <div className="mb-6">
+          <div className="relative h-80 w-64 max-w-full shrink-0 overflow-hidden rounded-lg">
+            <ProfilePhoto src={profile.photo} fallbackSrc={profile.photoFallback} alt={profile.name} />
+          </div>
+        </div>
+        <div className="mb-6">
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">{profile.name}</h2>
+          <h3 className="mb-4 text-xl font-normal text-gray-700">{profile.subtitle}</h3>
+        </div>
       </div>
 
-      <h1 className="mt-8 text-3xl font-bold tracking-tight">{profile.name}</h1>
-      <p className="mt-1 text-2xl text-muted-foreground">{profile.subtitle}</p>
+      <div className="mb-6">
+        <div className="inline-block rounded border-2 border-gray-200 bg-gray-100 p-3">
+          <h3 className="text-sm font-medium text-gray-700">Information</h3>
+        </div>
+      </div>
 
-      <Button variant="outline" className="mt-10 h-auto bg-muted px-4 py-3 text-base font-normal">
-        Information
-      </Button>
-
-      <dl className="mt-10 space-y-6">
+      <div className="space-y-4">
         <div>
-          <dt className="font-semibold">Networks</dt>
-          <dd className="mt-1 text-muted-foreground">{profile.networks}</dd>
+          <div className="mb-1 text-sm font-medium text-gray-900">Networks</div>
+          <div className="text-sm text-gray-700">{profile.networks}</div>
         </div>
         <div>
-          <dt className="font-semibold">Current City</dt>
-          <dd className="mt-1 text-muted-foreground">{profile.city}</dd>
+          <div className="mb-1 text-sm font-medium text-gray-900">Current City</div>
+          <div className="text-sm text-gray-700">{profile.city}</div>
         </div>
-      </dl>
+      </div>
     </aside>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ImagePlus, X } from "lucide-react"
+import { ImageIcon, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { getSupabase } from "@/lib/supabase"
@@ -80,6 +80,7 @@ export function WallFeed({ initialPosts, loadError, canPost }: WallFeedProps) {
     const problem = validatePhoto(file)
     if (problem) {
       setError(problem)
+      if (fileInput.current) fileInput.current.value = ""
       return
     }
     setError(null)
@@ -115,52 +116,45 @@ export function WallFeed({ initialPosts, loadError, canPost }: WallFeedProps) {
   }
 
   return (
-    <section className="min-w-0 flex-1 p-6 md:p-8">
+    <div className="max-w-none">
+      {!canPost && (
+        <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+          <p className="text-sm text-yellow-700">Supabase isn&apos;t configured yet, so posts can&apos;t be loaded or shared.</p>
+          <p className="mt-2 text-xs text-yellow-600">
+            💡 Copy .env.example to .env.local, add your project URL and key, then restart the dev server.
+          </p>
+        </div>
+      )}
+
       <form
+        className="mb-6"
         onSubmit={(e) => {
           e.preventDefault()
           share()
         }}
       >
-        <Textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) share()
-          }}
-          maxLength={MAX_POST_LENGTH}
-          placeholder="What's on your mind?"
-          aria-label="What's on your mind?"
-          disabled={!canPost || sharing}
-          className="min-h-36 resize-none rounded-md border-2 border-dashed border-neutral-300 bg-blue-50/70 px-5 py-4 text-base md:text-base dark:bg-blue-950/30"
-        />
-
-        {photoPreview && (
-          <div className="relative mt-4 inline-block animate-in duration-300 fade-in motion-reduce:animate-none">
-            {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-            <img src={photoPreview} alt="Selected photo" className="max-h-60 rounded-md border object-contain" />
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon-sm"
-              onClick={clearPhoto}
-              disabled={sharing}
-              aria-label="Remove photo"
-              className="absolute top-2 right-2 rounded-full shadow"
-            >
-              <X />
-            </Button>
+        <div className="mb-4">
+          <div className="rounded border-2 border-dashed border-gray-300 bg-gradient-to-r from-blue-50 via-blue-50 to-transparent p-4">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) share()
+              }}
+              rows={3}
+              maxLength={MAX_POST_LENGTH}
+              placeholder="What's on your mind?"
+              aria-label="What's on your mind?"
+              disabled={!canPost || sharing}
+              className="field-sizing-fixed mb-1.5 h-18 min-h-0 resize-none leading-6 rounded-none border-none bg-transparent p-0 text-base text-gray-900 shadow-none placeholder:text-gray-500 focus-visible:ring-0 disabled:bg-transparent md:text-base dark:bg-transparent"
+            />
           </div>
-        )}
+          <div className="mt-2 flex items-center justify-between text-sm">
+            <span className="text-gray-500">{remaining} characters remaining</span>
+          </div>
+        </div>
 
-        <p className="mt-5 text-sm text-muted-foreground">{remaining} characters remaining</p>
-        {error && (
-          <p role="alert" className="mt-3 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-5 flex items-center justify-end gap-3">
+        <div className="mb-4">
           <input
             ref={fileInput}
             type="file"
@@ -168,62 +162,108 @@ export function WallFeed({ initialPosts, loadError, canPost }: WallFeedProps) {
             className="hidden"
             onChange={(e) => choosePhoto(e.target.files?.[0])}
           />
-          <Button
-            type="button"
-            variant="outline"
-            disabled={!canPost || sharing}
-            onClick={() => fileInput.current?.click()}
-            className="h-12 rounded-md px-5 text-base"
-          >
-            <ImagePlus className="size-5" />
-            {photo ? "Change photo" : "Photo"}
-          </Button>
+          {photoPreview ? (
+            <div className="relative animate-in duration-300 fade-in motion-reduce:animate-none">
+              {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
+              <img src={photoPreview} alt="Selected photo" className="h-48 w-full rounded-lg object-cover" />
+              <button
+                type="button"
+                onClick={clearPhoto}
+                disabled={sharing}
+                aria-label="Remove photo"
+                className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={!canPost || sharing}
+              onClick={() => fileInput.current?.click()}
+              className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="flex flex-col items-center justify-center pt-5 pb-6">
+                <ImageIcon className="mb-2 h-8 w-8 text-gray-400" />
+                <span className="text-sm text-gray-500">
+                  <span className="font-semibold">Click to add photo</span> (optional)
+                </span>
+                <span className="mt-1 text-xs text-gray-400">JPG, PNG, GIF up to 5MB</span>
+              </span>
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {sharing && photo && (
+              <span className="flex items-center gap-2 text-sm text-blue-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Uploading photo...
+              </span>
+            )}
+          </div>
           <Button
             type="submit"
             disabled={!canShare}
-            className="h-12 rounded-md bg-blue-500 px-10 text-base text-white hover:bg-blue-600 disabled:bg-neutral-200 disabled:text-white disabled:opacity-100"
+            className="h-10 rounded px-8 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:opacity-100"
           >
-            {sharing ? "Sharing…" : "Share"}
+            {sharing ? "Sharing..." : "Share"}
           </Button>
         </div>
       </form>
 
-      <ul className="mt-4">
-        {posts.map((post) => (
-          <li
-            key={post.id}
-            className={cn(
-              "border-b py-6",
-              !initialIds.has(post.id) &&
-                "animate-in duration-500 ease-out fade-in slide-in-from-top-3 motion-reduce:animate-none"
-            )}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="text-xl font-bold">{post.author}</h2>
-              <time
-                dateTime={new Date(post.createdAt).toISOString()}
-                className="shrink-0 text-muted-foreground"
-                suppressHydrationWarning
-              >
-                {timeAgo(post.createdAt, now)}
-              </time>
+      <div className="space-y-4">
+        {posts.length === 0 && !error ? (
+          <div className="py-8 text-center text-gray-500">
+            <p>No messages yet. Be the first to share something!</p>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <div
+              key={post.id}
+              className={cn(
+                !initialIds.has(post.id) &&
+                  "animate-in duration-500 ease-out fade-in slide-in-from-top-3 motion-reduce:animate-none"
+              )}
+            >
+              <div className="mb-2 flex items-start justify-between gap-4">
+                <h4 className="text-lg font-bold text-gray-900">{post.author}</h4>
+                <time
+                  dateTime={new Date(post.createdAt).toISOString()}
+                  className="shrink-0 text-sm text-gray-500"
+                  suppressHydrationWarning
+                >
+                  {timeAgo(post.createdAt, now)}
+                </time>
+              </div>
+              {post.body && (
+                <div className="mb-4 text-base leading-relaxed break-words whitespace-pre-wrap text-gray-800">
+                  {post.body}
+                </div>
+              )}
+              {post.imageUrl && (
+                <div className="mb-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- images come from the Supabase bucket */}
+                  <img
+                    src={post.imageUrl}
+                    alt="Shared photo"
+                    loading="lazy"
+                    className="w-full max-w-md rounded-lg object-cover shadow-sm"
+                  />
+                </div>
+              )}
+              <hr className="mb-6 border-gray-300" />
             </div>
-            {post.body && <p className="mt-3 text-lg break-words whitespace-pre-wrap">{post.body}</p>}
-            {post.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element -- images come from the Supabase bucket
-              <img
-                src={post.imageUrl}
-                alt={post.body ? `Photo: ${post.body.slice(0, 80)}` : `Photo shared by ${post.author}`}
-                loading="lazy"
-                className="mt-4 max-h-[28rem] w-auto max-w-full rounded-md border object-contain"
-              />
-            )}
-          </li>
-        ))}
-        {!error && posts.length === 0 && (
-          <li className="py-10 text-center text-muted-foreground">No posts yet. Be the first to share something!</li>
+          ))
         )}
-      </ul>
-    </section>
+      </div>
+    </div>
   )
 }

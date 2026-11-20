@@ -19,8 +19,8 @@ export function ProfilePhoto({ src, fallbackSrc, alt }: ProfilePhotoProps) {
       alt={alt}
       fill
       priority
-      sizes="(min-width: 768px) 320px, 160px"
-      className="object-cover"
+      sizes="256px"
+      className="h-full w-full rounded-lg object-cover"
       onError={() => {
         if (current !== fallbackSrc) setCurrent(fallbackSrc)
       }}
